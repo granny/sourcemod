@@ -34,13 +34,15 @@
 #pragma semicolon 1
 
 #include <sourcemod>
+#include <Source-Chat-Relay>
+#include <ccc>
 
 #pragma newdecls required
 
 public Plugin myinfo = 
 {
 	name = "Basic Chat",
-	author = "AlliedModders LLC",
+	author = "AlliedModders LLC & granny",
 	description = "Basic Communication Commands",
 	version = SOURCEMOD_VERSION,
 	url = "http://www.sourcemod.net/"
@@ -359,6 +361,16 @@ void DisplayCenterTextToAll(int client, const char[] message)
 void SendChatToAdmins(int from, const char[] message)
 {
 	int fromAdmin = CheckCommandAccess(from, "sm_chat", ADMFLAG_CHAT);
+
+	char sID[64], sName[MAX_NAME_LENGTH], tag[MAX_NAME_LENGTH], sBuffer[MAX_NAME_LENGTH];
+
+	if (GetClientAuthId(from, AuthId_SteamID64, sID, sizeof sID) && GetClientName(from, sName, sizeof sName))
+	{
+		CCC_GetTag(from, tag, sizeof tag);
+		Format(sBuffer, sizeof sBuffer, "%s%s", tag, sName);
+		SCR_SendEvent("ADMIN", "ID64{%s} NAME{%s} MSG{%s}", sID, sBuffer, message);
+	}
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientInGame(i) && (from == i || CheckCommandAccess(i, "sm_chat", ADMFLAG_CHAT)))
